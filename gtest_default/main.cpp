@@ -1,7 +1,7 @@
 
 
 #include "gtest/gtest.h"
-#include "test_folder/test1.h"
+#include "include_test.h"
 // BELOW IS TESTS
 
 

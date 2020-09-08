@@ -26,12 +26,21 @@ $(OUTPUTFILE): $(obj)
 %.d: %.cpp
 	$(CXX) $(CXXFLAGS) $< -MM -MT $(@:.d=.o) >$@ 
 	
+
+#######################
+## CLEANING THINGS UP
+#######################
+.PHONY: cleanall 
+cleanall: clean cleandep
+
 .PHONY: clean
 clean:
 	rm -f $(obj) $(OUTPUTFILE)
 .PHONY: cleandep
 cleandep:
 	rm -f $(dep)
+	
+
 	
 .PHONY: run
 run:

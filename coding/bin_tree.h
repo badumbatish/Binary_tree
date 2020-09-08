@@ -20,7 +20,7 @@ private:
 
 
     void _add(int n);
-    void _remove(bin_node* node, int n);
+    void _remove(bin_node* &node, int n);
     bin_node* _search(int n);
     void _dfs_print(bin_node* node);
     bin_node* min(bin_node* node);
@@ -41,9 +41,9 @@ public:
     bin_node* min() { return bin_tree::min(root); }
     bin_node* max() { return bin_tree::max(root); }
 
-    bin_node* parent_min(bin_node* node);
+    bin_node* parent_min(bin_node* &node);
     bin_node* parent_max(bin_node* node);
-    bin_node* parent_value(bin_node* node, int v);
+    bin_node** parent_value(bin_node* &node, int v);
     bin_tree() {
         root = nullptr;
     }
@@ -55,8 +55,7 @@ public:
 bin_node* bin_tree::_search(int n) {
     bin_node *link=root;
     if(root==nullptr) {
-        root = new bin_node(n);
-        return root;
+        return nullptr;
     }
     bool toLeft=false;
     while(true) {
@@ -80,15 +79,27 @@ void bin_tree::_add(int n) {
         root = new bin_node(n);
         return;
     }
-    while(link) {
-        if(n<link->value) link=link->left;
-        else link=link->right;
+    bool toLeft=false;
+    while(true) {
+        if(n<link->value) toLeft=true;
+        else toLeft=false;
+
+        if(toLeft) {
+            if(link->left!=nullptr) link=link->left;
+            else {
+                link->left = new bin_node(n);
+                return;
+            }
+        }
+        else {
+            if(link->right!=nullptr) link=link->right;
+            else {
+                link->right = new bin_node(n);
+                return;
+            }
+        }
     }
-    link=new bin_node(n);
-    return;
 }
-
-
 bin_node* bin_tree::min(bin_node* node) {
     bin_node* link= node;
     if(link==nullptr) return nullptr;
@@ -126,16 +137,16 @@ void bin_tree::_dfs_print(bin_node* link) {
     }
 }
 
-bin_node* bin_tree::parent_min(bin_node* node) {
-    bin_node* link = node;
-    bin_node* prev = link;
+bin_node* bin_tree::parent_min(bin_node* &node) {
+    bin_node** link = &node;
+    bin_node** prev = link;
     if(link==nullptr) return nullptr;
     while(true) {
-        if(link->left!=nullptr) {
+        if((*link)->left!=nullptr) {
             prev=link;
-            link=link->left;
+            link=&((*link)->left);
         }
-        else return prev;
+        else return *prev;
     }
 }
 bin_node* bin_tree::parent_max(bin_node* node) {
@@ -150,30 +161,30 @@ bin_node* bin_tree::parent_max(bin_node* node) {
         else return prev;
     }
 }
-bin_node* bin_tree::parent_value(bin_node* node, int n) {
-    bin_node* link=node;
-    bin_node* prev=link;
+bin_node** bin_tree::parent_value(bin_node* &node, int n) {
+    bin_node** link=&node;
+    bin_node** prev=&node;
     if(node==nullptr) {
         return nullptr;
     }
     bool toLeft=false;
     while(true) {
-        if(n==link->value) return prev;
-        if(n<link->value) toLeft=true;
+        if(n==(*link)->value) return prev;
+        if(n<(*link)->value) toLeft=true;
         else toLeft=false;
 
 
         if(toLeft) {
-            if(link->left!=nullptr) {
+            if((*link)->left!=nullptr) {
                 prev=link;
-                link=link->left;
+                link=&((*link)->left);
             }
             else return nullptr;
         }
         else {
-            if(link->right!=nullptr) {
+            if((*link)->right!=nullptr) {
                 prev=link;
-                link=link->right;
+                link=&((*link)->right);
             }
             else return nullptr;
         }
@@ -181,53 +192,63 @@ bin_node* bin_tree::parent_value(bin_node* node, int n) {
 }
 
 
-void bin_tree::_remove(bin_node* node, int n) {
+void bin_tree::_remove(bin_node* &node, int n) {
     // CASE 1 : NODE HAS NO CHILDREN
     // CASE 2 : NODE HAS 1 CHILD
     // CASE 3 : NODE HAS 2 CHILDREN
 
-    bin_node* link=parent_value(node,n);
+    bin_node** link = parent_value(node,n);
     if(link==nullptr) return;
-    bin_node* child;
+    bin_node** child;
+
 
     bool toLeft=false;
-    if(link->left && link->left->value==n) {
-        child=link->left;
+    if((*link)->left && (*link)->left->value==n) {
+        child=&((*link)->left);
         toLeft=true;
     }
-    else child=link->right;
-
-    if(child->left==nullptr && child->right==nullptr) {
-        if(toLeft) link->left=nullptr;
-        else link->right=nullptr;
-        delete child;
+    else if((*link)->right && (*link)->right->value==n)
+        child=&((*link)->right);
+    else {
+        child=link;
     }
-    else if(child->left==nullptr || child->right==nullptr) {
+
+
+    if((*child)->left==nullptr && (*child)->right==nullptr) {
+        IC();
+        delete *child;
+        *child=nullptr;
+    }
+    else if((*child)->left==nullptr || (*child)->right==nullptr) {
         if(toLeft) {
-            if(child->left) link->left=child->left;
-            else link->left=child->right;
+            if((*child)->left) (*link)->left=(*child)->left;
+            else (*link)->left=(*child)->right;
         }
         else {
-            if(child->left) link->right=child->left;
-            else link->right=child->right;
+            if((*child)->left) (*link)->right=(*child)->left;
+            else (*link)->right=(*child)->right;
         }
-        if(child->left) child->left=nullptr;
-        else child->right=nullptr;
-        delete child;
+        if((*child)->left) (*child)->left=nullptr;
+        else (*child)->right=nullptr;
+        delete *child;
+        *child=nullptr;
+
     }
     else {
-        bin_node* c = bin_tree::parent_min(child);
+        bin_node* c = bin_tree::parent_min(*child);
         bin_node* c_child = c->left;
         
-        c_child->left=child->left;
-        c_child->right=child->right;
-        child->left=nullptr;
-        child->right=nullptr;
+        c_child->left=(*child)->left;
+        c_child->right=(*child)->right;
+        (*child)->left=nullptr;
+        (*child)->right=nullptr;
         if(toLeft) {
-            link->left=c_child;
+            (*link)->left=c_child;
         }
-        else link->right=c_child;
+        else (*link)->right=c_child;
         c->left=nullptr;
-        delete child;
+        delete *child;
+        *child=nullptr;
+
     }
 }
