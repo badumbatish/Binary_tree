@@ -1,12 +1,12 @@
 #include "includer.h"
+
 struct bin_node {
     int value;
-    bin_node* left=nullptr;
+    bin_node* left =nullptr;
     bin_node* right=nullptr;
-
     bin_node() {}
-    bin_node(int value) {
-         this->value = value;
+    bin_node(int n) {
+        value=n;
     }
     ~bin_node() {
         delete left;
@@ -14,241 +14,120 @@ struct bin_node {
     }
 };
 
-
 class bin_tree {
-private:
+private: 
+    bin_node* root=nullptr;
 
-
-    void _add(int n);
-    void _remove(bin_node* &node, int n);
-    bin_node* _search(int n);
-    void _dfs_print(bin_node* node);
-    bin_node* min(bin_node* node);
-    bin_node* max(bin_node* node);
-
+    void _add(bin_node* &node, int n);
+    bin_node** _search(bin_node* &node,int n);
+    void _remove(int n);
+    bin_node**  min(bin_node* &node);
+    void _dfs(bin_node* &node);
+    bin_node** _parent_search(bin_node* &node, int n);
+    bin_node** parent_search(int n) { return _parent_search(root,n); }
 public:
-    bin_node* root;
-    void add(int n) {bin_tree::_add(n);}
+    bin_tree() {}
+    void add(int n) { _add(root,n); }
     void add(std::vector<int> v) {
         for(auto i : v) {
-            _add(i);
+            add(i);
         }
     }
-    void remove(int n) { bin_tree::_remove(root,n); }
-    bin_node* search(int n) { return bin_tree::_search(n); }
-    void dfs_print();
-    
-    bin_node* min() { return bin_tree::min(root); }
-    bin_node* max() { return bin_tree::max(root); }
-
-    bin_node* parent_min(bin_node* &node);
-    bin_node* parent_max(bin_node* node);
-    bin_node** parent_value(bin_node* &node, int v);
-    bin_tree() {
-        root = nullptr;
-    }
+    bin_node** search(int n) {return _search(root,n); }
+    void remove(int n) { _remove(n); }
+    void dfs() { _dfs(root); }
+    bin_node** min() { return min(root); }
     ~bin_tree() {
         delete root;
     }
+
 };
 
-bin_node* bin_tree::_search(int n) {
-    bin_node *link=root;
-    if(root==nullptr) {
-        return nullptr;
-    }
-    bool toLeft=false;
-    while(true) {
-        if(n==link->value) return link;
-        if(n<link->value) toLeft=true;
-        else toLeft=false;
-
-        if(toLeft) {
-            if(link->left!=nullptr) link=link->left;
-            else return nullptr;
-        }
-        else {
-            if(link->right!=nullptr) link=link->right;
-            else return nullptr;
-        }
-    }
-}
-void bin_tree::_add(int n) {
-    bin_node *link=root;
-    if(root==nullptr) {
-        root = new bin_node(n);
+void bin_tree::_add(bin_node* &node, int n) {
+    if(node==nullptr) {
+        node = new bin_node(n);
         return;
     }
-    bool toLeft=false;
-    while(true) {
-        if(n<link->value) toLeft=true;
-        else toLeft=false;
-
-        if(toLeft) {
-            if(link->left!=nullptr) link=link->left;
-            else {
-                link->left = new bin_node(n);
-                return;
-            }
-        }
-        else {
-            if(link->right!=nullptr) link=link->right;
-            else {
-                link->right = new bin_node(n);
-                return;
-            }
-        }
-    }
-}
-bin_node* bin_tree::min(bin_node* node) {
-    bin_node* link= node;
-    if(link==nullptr) return nullptr;
-    while(true) {
-        if(link->left!=nullptr) link=link->left;
-        else return link;
-    }
+    else if(n < node->value) _add(node->left,n);
+    else _add(node->right,n);
 }
 
-bin_node* bin_tree::max(bin_node* node) {
-    bin_node* link= node;
-    if(link==nullptr) return nullptr;
-    while(true) {
-        if(link->right!=nullptr) link=link->right;
-        else return link;
-    }  
+bin_node** bin_tree::_search(bin_node* &node, int n) {
+    if(node==nullptr) return nullptr;
+
+    if(node->value==n) return &node;
+    else if(n < node->value) return _search(node->left,n);
+    else return _search(node->right,n);
 }
-void bin_tree::dfs_print() {
-    bin_node* link = root;
-    if(link!=nullptr) {
-        std::cout << link->value << " ";
-        bin_tree::_dfs_print(link);
-    }
-    else return;
+bin_node** bin_tree::min(bin_node* &node) {
+    if(node->left==nullptr) return &node;
+    else return min(node->left);
+
 }
-void bin_tree::_dfs_print(bin_node* link) {
-    if(link->left!=nullptr) {
-        std::cout << link->left->value << " ";
-        _dfs_print(link->left);
+void bin_tree::_remove(int n) {
+    bin_node** parent = parent_search(n);
+    if(!(parent)) return;
+    bin_node** link;
+    if(((*parent)->left) && ((*parent)->left->value)==(*parent)->value) link=&((*parent)->left);
+    else if(((*parent)->right) && ((*parent)->right->value)==(*parent)->value) link=&((*parent)->right);
+    else link=parent;
 
-    }
-    if(link->right!=nullptr) {
-        std::cout << link->right->value << " ";
-        _dfs_print(link->right);
-    }
-}
-
-bin_node* bin_tree::parent_min(bin_node* &node) {
-    bin_node** link = &node;
-    bin_node** prev = link;
-    if(link==nullptr) return nullptr;
-    while(true) {
-        if((*link)->left!=nullptr) {
-            prev=link;
-            link=&((*link)->left);
-        }
-        else return *prev;
-    }
-}
-bin_node* bin_tree::parent_max(bin_node* node) {
-    bin_node* link = node;
-    bin_node* prev = link;
-    if(link==nullptr) return nullptr;
-    while(true) {
-        if(link->right!=nullptr) {
-            prev=link;
-            link=link->right;
-        }
-        else return prev;
-    }
-}
-bin_node** bin_tree::parent_value(bin_node* &node, int n) {
-    bin_node** link=&node;
-    bin_node** prev=&node;
-    if(node==nullptr) {
-        return nullptr;
-    }
-    bool toLeft=false;
-    while(true) {
-        if(n==(*link)->value) return prev;
-        if(n<(*link)->value) toLeft=true;
-        else toLeft=false;
-
-
-        if(toLeft) {
-            if((*link)->left!=nullptr) {
-                prev=link;
-                link=&((*link)->left);
-            }
-            else return nullptr;
-        }
-        else {
-            if((*link)->right!=nullptr) {
-                prev=link;
-                link=&((*link)->right);
-            }
-            else return nullptr;
-        }
-    }
-}
-
-
-void bin_tree::_remove(bin_node* &node, int n) {
-    // CASE 1 : NODE HAS NO CHILDREN
-    // CASE 2 : NODE HAS 1 CHILD
-    // CASE 3 : NODE HAS 2 CHILDREN
-
-    bin_node** link = parent_value(node,n);
-    if(link==nullptr) return;
-    bin_node** child;
-
-
-    bool toLeft=false;
-    if((*link)->left && (*link)->left->value==n) {
-        child=&((*link)->left);
-        toLeft=true;
-    }
-    else if((*link)->right && (*link)->right->value==n)
-        child=&((*link)->right);
+    if(!(*link)) return;
     else {
-        child=link;
-    }
-
-
-    if((*child)->left==nullptr && (*child)->right==nullptr) {
-        IC();
-        delete *child;
-        *child=nullptr;
-    }
-    else if((*child)->left==nullptr || (*child)->right==nullptr) {
-        if(toLeft) {
-            if((*child)->left) (*link)->left=(*child)->left;
-            else (*link)->left=(*child)->right;
+        // If node has no children //FIXED
+        if((*link)->left==nullptr && (*link)->right==nullptr) {
+            delete *link;
+            *link=nullptr;
+        }
+        // If node has 1 children
+        // CASE 0: left child
+        else if((*link)->left && !((*link)->right)) {
+            bin_node* temp=((*link)->left);
+            ((*link)->left)=nullptr;
+            delete *link;
+            (*link)=temp;
+        }
+        // CASE 1: right child
+        else if((*link)->right && !((*link)->left)) {
+            bin_node* temp=((*link)->right);
+            ((*link)->right)=nullptr;
+            delete *link;
+            (*link)=temp;
         }
         else {
-            if((*child)->left) (*link)->right=(*child)->left;
-            else (*link)->right=(*child)->right;
-        }
-        if((*child)->left) (*child)->left=nullptr;
-        else (*child)->right=nullptr;
-        delete *child;
-        *child=nullptr;
+            bin_node** minimum = bin_tree::min((*link)->right);
+            if((*minimum)==(*link)->right) {
+                bin_node* temp=((*link)->right);
+                temp->left=(*link)->left;
+                ((*link)->left)=nullptr;
+                ((*link)->right)=nullptr;
+                delete *link;
+                (*link)=temp;
+            }
+            else
+            {
+                (*minimum)->left=(*link)->left;
+                (*minimum)->right=(*link)->right;
+                (*link)->left=nullptr;
+                (*link)->right=nullptr;
+                delete *link;
+                (*link)=*minimum;
+            }
 
-    }
-    else {
-        bin_node* c = bin_tree::parent_min(*child);
-        bin_node* c_child = c->left;
-        
-        c_child->left=(*child)->left;
-        c_child->right=(*child)->right;
-        (*child)->left=nullptr;
-        (*child)->right=nullptr;
-        if(toLeft) {
-            (*link)->left=c_child;
         }
-        else (*link)->right=c_child;
-        c->left=nullptr;
-        delete *child;
-        *child=nullptr;
-
     }
+}
+
+bin_node** bin_tree::_parent_search(bin_node* &node, int n) {
+    if(node==nullptr) return nullptr;
+
+    if(node->value==n || (node->left && node->left->value==n) || (node->right && node->right->value == n)) return &node;
+    else if(n < node->value) return _parent_search(node->left,n);
+    else return _parent_search(node->right,n);
+}
+void bin_tree::_dfs(bin_node* &node) {
+    if(!node) return;
+    if(node->left) _dfs(node->left);
+    std::cout << node->value << " ";
+    if(node->right) _dfs(node->right);
 }
