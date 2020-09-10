@@ -11,4 +11,4 @@ Uses raw pointers instead of smart pointers.
 Right now there's no benchmark and I don't write the library in search for performance. The repository is more focused on the analytics of why I write the library the way I write and why I use certain stuff to make the library works.
 - __Why write the library?__
 For fun, for educational purpose and to improve myself.
-Other learner can comment on the repo and learn a thing or twice i think.
+Other learner can comment on the repo and learn a thing or two I think.
