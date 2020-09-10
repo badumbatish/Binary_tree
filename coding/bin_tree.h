@@ -1,8 +1,7 @@
 #include "includer.h"
 
-template<classname T>
 struct bin_node {
-    T value;
+    int value;
     bin_node* left =nullptr;
     bin_node* right=nullptr;
     bin_node() {}
@@ -18,10 +17,9 @@ struct bin_node {
 class bin_tree {
 private: 
     bin_node* root=nullptr;
-
     bin_node** _add(bin_node* &node, int n); // tail recursion 
     bin_node** _search(bin_node* &node,int n); // tail recursion 
-    void _remove(int n);
+    void _remove(bin_node* &node,int n);
     bin_node**  min(bin_node* &node); // tail recursion 
     void _dfs(bin_node* &node);
 public:
@@ -29,13 +27,12 @@ public:
     bin_node** add(int n) { return _add(root,n); }
     void add(std::vector<int> v) { for(auto i : v) add(i); }
     bin_node** search(int n) { return _search(root,n); } // tail recursion 
-    void remove(int n) { _remove(n); } 
+    void remove(int n) { _remove(root,n); } 
     void dfs() { _dfs(root); }
     bin_node** min() { return min(root); }
     ~bin_tree() {
         delete root;
     }
-
 };
 
 bin_node** bin_tree::_add(bin_node* &node, int n) {
@@ -60,8 +57,8 @@ bin_node** bin_tree::min(bin_node* &node) {
     else return min(node->left);
 
 }
-void bin_tree::_remove(int n) {
-    bin_node** link = search(n);
+void bin_tree::_remove(bin_node* &node,int n) {
+    bin_node** link = _search(node,n);
     if(!(link)) return;
     else {
         // If node has no children //FIXED
@@ -84,19 +81,11 @@ void bin_tree::_remove(int n) {
             delete *link;
             (*link)=temp;
         }
-
         // If node has 2 children
         else {
             bin_node** minimum = bin_tree::min((*link)->right);
-            (*minimum)->left=(*link)->left;
-
-            if((*minimum)==(*link)->right) (*minimum)->right=nullptr;
-            else (*minimum)->right=(*link)->right;
-            
-            (*link)->left=nullptr;
-            (*link)->right=nullptr;
-            delete *link;
-            (*link)=*minimum;
+            (*link)->value = (*minimum)->value;
+            _remove((*minimum),(*minimum)->value);
         }
     }
 }
