@@ -70,16 +70,22 @@ void bin_tree::_remove(bin_node* &node,int n) {
         // CASE 0: left child
         else if((*link)->left && !((*link)->right)) {
             bin_node* temp=((*link)->left);
-            ((*link)->left)=nullptr;
-            delete *link;
-            (*link)=temp;
+            ((*link)->value)=(temp->value);
+            ((*link)->left)=(temp->left);
+            ((*link)->right)=(temp->right);
+            temp->left=nullptr;
+            temp->right=nullptr;
+            delete temp;
         }
         // CASE 1: right child
         else if((*link)->right && !((*link)->left)) {
             bin_node* temp=((*link)->right);
-            ((*link)->right)=nullptr;
-            delete *link;
-            (*link)=temp;
+            ((*link)->value)=(temp->value);
+            ((*link)->left)=(temp->left);
+            ((*link)->right)=(temp->right);
+            temp->left=nullptr;
+            temp->right=nullptr;
+            delete temp;
         }
         // If node has 2 children
         else {
