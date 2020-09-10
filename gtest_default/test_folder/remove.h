@@ -96,3 +96,13 @@ TEST(Address_test,node_and_right_child) {
     bin_node* temp2=*(tr.search(2));
     EXPECT_EQ(temp1,temp2);
 }
+
+TEST(Address_test,node_and_right_child_2) {
+    bin_tree tr;
+    std::vector<int> v{2,1,3};
+    tr.add(v);
+    bin_node* temp1=*(tr.search(2));
+    tr.remove(2);
+    bin_node* temp2=*(tr.search(3));
+    EXPECT_EQ(temp1,temp2);
+}

@@ -1,6 +1,9 @@
 #include "includer.h"
 
-struct bin_node {
+class bin_node;
+class bin_tree;
+
+class bin_node {
     int value;
     bin_node* left =nullptr;
     bin_node* right=nullptr;
@@ -12,6 +15,7 @@ struct bin_node {
         delete left;
         delete right;
     }
+    friend class bin_tree;
 };
 
 class bin_tree {
